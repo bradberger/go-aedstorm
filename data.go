@@ -237,7 +237,9 @@ func (dm *DataModel) Uncache() error {
 		return err
 	}
 	if obj, ok := dm.model.(OnUncache); ok {
-		obj.Uncache()
+		if err := obj.Uncache(); err != nil {
+			return err
+		}
 	}
 	return nil
 }

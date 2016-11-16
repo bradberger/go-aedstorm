@@ -376,3 +376,18 @@ func TestModelSaveError(t *testing.T) {
 	dm := NewModel(se).WithContext(ctx)
 	assert.EqualError(t, dm.Save(), "saved me")
 }
+
+type testModelWithUncache struct {
+	ID string
+}
+
+func (se *testModelWithUncache) Uncache() error {
+	return errors.New("uncached me")
+}
+
+func TestModelUncacheError(t *testing.T) {
+	se := &testModelWithUncache{}
+	dm := NewModel(se).WithContext(ctx)
+	assert.NoError(t, dm.Cache())
+	assert.EqualError(t, dm.Uncache(), "uncached me")
+}
