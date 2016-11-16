@@ -1,6 +1,8 @@
 package aedstorm
 
 import (
+	"bytes"
+	"crypto/rand"
 	"errors"
 	"fmt"
 	"log"
@@ -9,6 +11,7 @@ import (
 	"time"
 
 	"google.golang.org/appengine/aetest"
+	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/memcache"
 
 	"golang.org/x/net/context"
@@ -305,6 +308,23 @@ func TestLoadFromDatastore(t *testing.T) {
 	assert.NoError(t, dm.Load())
 }
 
+func TestLoadDatastoreNoSuchEntity(t *testing.T) {
+	tm := &testModel{ID: "1"}
+	dm := NewModel(tm).WithContext(ctx)
+	dm.verified = true
+	dm.Delete()
+	assert.Equal(t, datastore.ErrNoSuchEntity, dm.Load())
+}
+
+func TestLoadDataCacheErr(t *testing.T) {
+	tm := &onCacheTestModel{}
+	dm := NewModel(tm).WithContext(ctx)
+	dm.verified = true
+	assert.EqualError(t, dm.Save(), "cached me")
+	assert.NoError(t, dm.Uncache())
+	assert.EqualError(t, dm.Load(), "cached me")
+}
+
 type modelWithNoEntity struct{}
 
 func TestEntityNameWithNoInterface(t *testing.T) {
@@ -328,4 +348,31 @@ func TestSetEntityID(t *testing.T) {
 	dm := NewModel(tm)
 	assert.NotEmpty(t, dm.ID())
 	assert.Equal(t, dm.ID(), tm.ID)
+}
+
+func TestGetIDPanic(t *testing.T) {
+	oldReader := rand.Reader
+	defer func() {
+		rand.Reader = oldReader
+	}()
+	rand.Reader = bytes.NewBuffer(nil)
+	tm := &testModelWithIDField{}
+	dm := NewModel(tm)
+	assert.Panics(t, func() {
+		dm.ID()
+	})
+}
+
+type testModelWithSaveErr struct {
+	ID string
+}
+
+func (se *testModelWithSaveErr) Save() error {
+	return errors.New("saved me")
+}
+
+func TestModelSaveError(t *testing.T) {
+	se := &testModelWithSaveErr{}
+	dm := NewModel(se).WithContext(ctx)
+	assert.EqualError(t, dm.Save(), "saved me")
 }

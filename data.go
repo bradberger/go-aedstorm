@@ -130,7 +130,7 @@ func (dm *DataModel) Load() error {
 	}
 	// If successful, then cache so we'll have it next time
 	if err := dm.Cache(); err != nil {
-		log.Warningf(dm.Context(), "(%s) Could not cache: %v", dm.cacheKey(), err)
+		return err
 	}
 	return nil
 }

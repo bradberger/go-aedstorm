@@ -1,6 +1,7 @@
 package aedstorm
 
 import (
+	"bytes"
 	"crypto/rand"
 	"testing"
 
@@ -14,6 +15,16 @@ func TestNewUUID(t *testing.T) {
 	}
 	assert.Equal(t, 16, len(u))
 	assert.Equal(t, 36, len(u.String()))
+}
+
+func TestNewUUIDWithErr(t *testing.T) {
+	oldReader := rand.Reader
+	defer func() {
+		rand.Reader = oldReader
+	}()
+	rand.Reader = bytes.NewBuffer(nil)
+	_, err := NewUUID()
+	assert.Error(t, err)
 }
 
 func TestNewUUIDPanic(t *testing.T) {
