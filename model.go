@@ -1,3 +1,4 @@
+// Package aedstorm an ORM like functions which makes working with App Engine datastore entities in go a bit easier
 package aedstorm
 
 // Model is an interface for datastore entities. User-implemented structs must

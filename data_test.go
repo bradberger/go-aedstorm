@@ -247,12 +247,12 @@ type onCacheTestModel struct {
 	ID string
 }
 
-func (m *ondeleteTestModel) Cache() error {
+func (m *onCacheTestModel) Cache() error {
 	return errors.New("cached me")
 }
 
 func TestCacheWithCacheInterface(t *testing.T) {
-	tm := &ondeleteTestModel{}
+	tm := &onCacheTestModel{}
 	dm := NewModel(tm).WithContext(ctx)
 	assert.EqualError(t, dm.Cache(), "cached me")
 }
