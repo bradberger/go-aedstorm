@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"google.golang.org/appengine/aetest"
+	"google.golang.org/appengine/memcache"
 
 	"golang.org/x/net/context"
 
@@ -213,12 +214,12 @@ func TestDelete(t *testing.T) {
 	assert.NoError(t, dm.Delete())
 }
 
-func TestDeleteWithNoCache(t *testing.T) {
+func TestDeleteWithCacheError(t *testing.T) {
 	tm := &testModel{}
 	dm := NewModel(tm).WithContext(ctx)
 	assert.NoError(t, dm.Save())
 	assert.NoError(t, dm.Uncache())
-	assert.Error(t, dm.Delete())
+	assert.Equal(t, memcache.ErrCacheMiss, dm.Delete())
 }
 
 func TestDeleleteUnsaved(t *testing.T) {
@@ -231,15 +232,29 @@ type ondeleteTestModel struct {
 	ID string
 }
 
-func (*ondeleteTestModel) Delete() error {
+func (m *ondeleteTestModel) Delete() error {
 	return errors.New("delete me")
 }
 
 func TestDeleteWithOnDelete(t *testing.T) {
-	tm := &testModel{}
+	tm := &ondeleteTestModel{}
 	dm := NewModel(tm).WithContext(ctx)
 	assert.NoError(t, dm.Save())
 	assert.EqualError(t, dm.Delete(), "delete me")
+}
+
+type onCacheTestModel struct {
+	ID string
+}
+
+func (m *ondeleteTestModel) Cache() error {
+	return errors.New("cached me")
+}
+
+func TestCacheWithCacheInterface(t *testing.T) {
+	tm := &ondeleteTestModel{}
+	dm := NewModel(tm).WithContext(ctx)
+	assert.EqualError(t, dm.Cache(), "cached me")
 }
 
 func TestGetKey(t *testing.T) {

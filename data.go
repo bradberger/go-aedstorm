@@ -225,7 +225,7 @@ func (dm *DataModel) Cache() error {
 	return nil
 }
 
-// Use sets the internal context for use in future operations
+// WithContext sets the internal context for use in future operations
 func (dm *DataModel) WithContext(ctx context.Context) *DataModel {
 	dm.ctx = ctx
 	return dm
