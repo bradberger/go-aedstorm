@@ -1,6 +1,7 @@
 package aedstorm
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -27,6 +28,14 @@ func TestMain(m *testing.M) {
 	}
 	defer done()
 	os.Exit(m.Run())
+}
+
+type testModelErr struct {
+	ID string
+}
+
+func (tme *testModelErr) Error() error {
+	return errors.New("custom error")
 }
 
 type testModel struct {
@@ -101,6 +110,10 @@ func (n *nonStructModel) Save(ctx context.Context) error {
 
 func TestNewModelWithNoPtr(t *testing.T) {
 	assert.Panics(t, func() {
+		tm := testModel{}
+		NewModel(tm)
+	})
+	assert.Panics(t, func() {
 		nsm := nonStructModel(true)
 		NewModel(&nsm)
 	})
@@ -167,6 +180,13 @@ func TestFromCacheWithNoContext(t *testing.T) {
 	assert.Equal(t, ErrNoContext, dm.fromCache())
 }
 
+func TestFromCache(t *testing.T) {
+	tm := &testModel{}
+	dm := NewModel(tm).WithContext(ctx)
+	assert.NoError(t, dm.Cache())
+	assert.NoError(t, dm.fromCache())
+}
+
 func TestCacheWithNoContext(t *testing.T) {
 	tm := &testModel{}
 	dm := NewModel(tm)
@@ -177,6 +197,49 @@ func TestSaveWithNoContext(t *testing.T) {
 	tm := &testModel{}
 	dm := NewModel(tm)
 	assert.Equal(t, ErrNoContext, dm.Save())
+}
+
+func TestSaveWithErrorInterface(t *testing.T) {
+	tm := &testModelErr{}
+	dm := NewModel(tm).WithContext(ctx)
+	dm.verified = true
+	assert.EqualError(t, dm.Save(), "custom error")
+}
+
+func TestDelete(t *testing.T) {
+	tm := &testModel{}
+	dm := NewModel(tm).WithContext(ctx)
+	assert.NoError(t, dm.Save())
+	assert.NoError(t, dm.Delete())
+}
+
+func TestDeleteWithNoCache(t *testing.T) {
+	tm := &testModel{}
+	dm := NewModel(tm).WithContext(ctx)
+	assert.NoError(t, dm.Save())
+	assert.NoError(t, dm.Uncache())
+	assert.Error(t, dm.Delete())
+}
+
+func TestDeleleteUnsaved(t *testing.T) {
+	tm := &testModel{}
+	dm := NewModel(tm).WithContext(ctx)
+	assert.Error(t, dm.Delete())
+}
+
+type ondeleteTestModel struct {
+	ID string
+}
+
+func (*ondeleteTestModel) Delete() error {
+	return errors.New("delete me")
+}
+
+func TestDeleteWithOnDelete(t *testing.T) {
+	tm := &testModel{}
+	dm := NewModel(tm).WithContext(ctx)
+	assert.NoError(t, dm.Save())
+	assert.EqualError(t, dm.Delete(), "delete me")
 }
 
 func TestGetKey(t *testing.T) {
@@ -195,6 +258,36 @@ func TestEntityName(t *testing.T) {
 	tm := &testModel{}
 	dm := NewModel(tm)
 	assert.Equal(t, "testModel", dm.getEntityName())
+}
+
+func TestEntityNamePreset(t *testing.T) {
+	tm := &testModel{}
+	dm := NewModel(tm)
+	dm.entity = "foobar"
+	assert.Equal(t, "foobar", dm.getEntityName())
+}
+
+func TestLoadWhenVerifyFails(t *testing.T) {
+	tm := &testModel{}
+	dm := NewModel(tm)
+	assert.Error(t, dm.Load())
+}
+
+func TestLoadFromCache(t *testing.T) {
+	tm := &testModel{}
+	dm := NewModel(tm).WithContext(ctx)
+	dm.verified = true
+	assert.NoError(t, dm.Cache())
+	assert.NoError(t, dm.Load())
+}
+
+func TestLoadFromDatastore(t *testing.T) {
+	tm := &testModel{}
+	dm := NewModel(tm).WithContext(ctx)
+	dm.verified = true
+	assert.NoError(t, dm.Save())
+	assert.NoError(t, dm.Uncache())
+	assert.NoError(t, dm.Load())
 }
 
 type modelWithNoEntity struct{}
