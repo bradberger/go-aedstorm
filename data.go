@@ -39,18 +39,15 @@ type DataModel struct {
 }
 
 // NewModel returns an initialized data model
-func NewModel(m Model) (*DataModel, error) {
-	if m == nil {
-		return nil, ErrNilModel
-	}
+func NewModel(m Model) *DataModel {
 	t := reflect.ValueOf(m).Type()
 	if t.Kind() != reflect.Ptr {
-		return nil, ErrModelInvalid
+		panic(ErrModelInvalid)
 	}
 	if t.Elem().Kind() != reflect.Struct {
-		return nil, ErrModelInvalid
+		panic(ErrModelInvalid)
 	}
-	return &DataModel{model: m}, nil
+	return &DataModel{model: m}
 }
 
 // verify checks that the DataModel has an ID field, context, and non-nil model.
@@ -152,7 +149,7 @@ func (dm *DataModel) ID() string {
 		return dm.uid
 	}
 
-	// Try to get the entity name from a Entity() method. If not, fall back to the name of the type itself
+	// Try to get the entity name from a Entity() method. If not, fall back to a new UUID v4
 	if obj, ok := dm.model.(EntityID); ok {
 		if id := obj.GetID(); id != "" {
 			dm.uid = id
@@ -164,7 +161,14 @@ func (dm *DataModel) ID() string {
 	if err != nil {
 		panic(err)
 	}
+
 	dm.uid = uuid.String()
+
+	// If can set the id field, do it now.
+	if fieldName, err := dm.getIDField(); err == nil {
+		reflect.ValueOf(dm.model).Elem().FieldByName(fieldName).SetString(dm.uid)
+	}
+
 	return dm.uid
 }
 
@@ -222,7 +226,7 @@ func (dm *DataModel) Cache() error {
 }
 
 // Use sets the internal context for use in future operations
-func (dm *DataModel) Use(ctx context.Context) *DataModel {
+func (dm *DataModel) WithContext(ctx context.Context) *DataModel {
 	dm.ctx = ctx
 	return dm
 }

@@ -85,8 +85,7 @@ func (tm *testModelWithNoID) Save(ctx context.Context) error {
 
 func TestNewModel(t *testing.T) {
 	tm := &testModel{}
-	dm, err := NewModel(tm)
-	assert.NoError(t, err)
+	dm := NewModel(tm)
 	assert.Equal(t, dm.model, tm)
 }
 
@@ -101,27 +100,22 @@ func (n *nonStructModel) Save(ctx context.Context) error {
 }
 
 func TestNewModelWithNoPtr(t *testing.T) {
-	nsm := nonStructModel(true)
-	dm, err := NewModel(&nsm)
-	assert.Nil(t, dm)
-	assert.Equal(t, ErrModelInvalid, err)
+	assert.Panics(t, func() {
+		nsm := nonStructModel(true)
+		NewModel(&nsm)
+	})
 }
 
 func TestNewModelVerifyFlag(t *testing.T) {
 	tm := &testModel{}
-	dm, err := NewModel(tm)
-	if !assert.NoError(t, err) {
-		return
-	}
-
+	dm := NewModel(tm)
 	dm.verified = true
 	assert.NoError(t, dm.verify())
 }
 
 func TestNewModelVerifyContext(t *testing.T) {
 	tm := &testModel{}
-	dm, err := NewModel(tm)
-	assert.NoError(t, err)
+	dm := NewModel(tm)
 	assert.Equal(t, ErrNoContext, dm.verify())
 }
 
@@ -146,10 +140,7 @@ func TestNewModelIDFieldName(t *testing.T) {
 
 func TestGetIDField(t *testing.T) {
 	tm := &testModelWithIDTag{}
-	dm, err := NewModel(tm)
-	if !assert.NoError(t, err) {
-		return
-	}
+	dm := NewModel(tm)
 	idField, err := dm.getIDField()
 	assert.NoError(t, err)
 	assert.Equal(t, "Email", idField)
@@ -157,11 +148,8 @@ func TestGetIDField(t *testing.T) {
 
 func TestDataModelUse(t *testing.T) {
 	tm := &testModelWithIDTag{}
-	dm, err := NewModel(tm)
-	if !assert.NoError(t, err) {
-		return
-	}
-	dm.Use(ctx)
+	dm := NewModel(tm)
+	dm.WithContext(ctx)
 	assert.NotNil(t, dm.ctx)
 	assert.NotNil(t, dm.Context())
 }
@@ -169,39 +157,32 @@ func TestDataModelUse(t *testing.T) {
 func TestModelCacheKeyName(t *testing.T) {
 	u := fmt.Sprintf("%d", time.Now().Unix())
 	tm := &testModel{}
-	dm, err := NewModel(tm)
-	assert.NoError(t, err)
+	dm := NewModel(tm)
 	assert.Equal(t, "model.testModel."+u, dm.cacheKey())
 }
 
 func TestFromCacheWithNoContext(t *testing.T) {
 	tm := &testModel{}
-	dm, err := NewModel(tm)
-	assert.NoError(t, err)
+	dm := NewModel(tm)
 	assert.Equal(t, ErrNoContext, dm.fromCache())
 }
 
 func TestCacheWithNoContext(t *testing.T) {
 	tm := &testModel{}
-	dm, err := NewModel(tm)
-	assert.NoError(t, err)
+	dm := NewModel(tm)
 	assert.Equal(t, ErrNoContext, dm.Cache())
 }
 
 func TestSaveWithNoContext(t *testing.T) {
 	tm := &testModel{}
-	dm, err := NewModel(tm)
-	assert.NoError(t, err)
+	dm := NewModel(tm)
 	assert.Equal(t, ErrNoContext, dm.Save())
 }
 
 func TestGetKey(t *testing.T) {
 	tm := &testModel{ID: "foobar"}
-	dm, err := NewModel(tm)
-	if !assert.NoError(t, err) {
-		return
-	}
-	dm.Use(ctx)
+	dm := NewModel(tm)
+	dm.WithContext(ctx)
 	k := dm.Key()
 	assert.NotNil(t, k)
 	assert.Nil(t, k.Parent())
@@ -212,10 +193,7 @@ func TestGetKey(t *testing.T) {
 
 func TestEntityName(t *testing.T) {
 	tm := &testModel{}
-	dm, err := NewModel(tm)
-	if !assert.NoError(t, err) {
-		return
-	}
+	dm := NewModel(tm)
 	assert.Equal(t, "testModel", dm.getEntityName())
 }
 
@@ -223,18 +201,23 @@ type modelWithNoEntity struct{}
 
 func TestEntityNameWithNoInterface(t *testing.T) {
 	m := &modelWithNoEntity{}
-	dm, err := NewModel(m)
-	if !assert.NoError(t, err) {
-		return
-	}
+	dm := NewModel(m)
 	assert.Equal(t, "modelWithNoEntity", dm.getEntityName())
 }
 
 func TestEntityID(t *testing.T) {
 	tm := &testModel{}
-	dm, err := NewModel(tm)
-	if !assert.NoError(t, err) {
-		return
-	}
+	dm := NewModel(tm)
 	assert.NotEmpty(t, dm.ID())
+}
+
+type testModelWithIDField struct {
+	ID string
+}
+
+func TestSetEntityID(t *testing.T) {
+	tm := &testModelWithIDField{}
+	dm := NewModel(tm)
+	assert.NotEmpty(t, dm.ID())
+	assert.Equal(t, dm.ID(), tm.ID)
 }
