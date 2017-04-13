@@ -30,8 +30,13 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		log.Fatalf("Could not get test context: %v", err)
 	}
-	defer done()
-	os.Exit(m.Run())
+	code := m.Run()
+	done()
+	os.Stdout.Sync()
+	os.Stdout.Close()
+	os.Stderr.Sync()
+	os.Stderr.Close()
+	os.Exit(code)
 }
 
 type testModelErr struct {

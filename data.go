@@ -67,10 +67,11 @@ func (dm *DataModel) verify() (err error) {
 	defer dm.Unlock()
 
 	// See if implements the EntityID interface, if not then try to guess the field
-	if _, ok := dm.model.(EntityID); !ok {
-		if dm.idFieldName, err = dm.getIDField(); err != nil {
-			return err
-		}
+	_, ok := dm.model.(EntityID)
+
+	// Try to get the ID field, but only fail if the model doesn't implement EntityID
+	if dm.idFieldName, err = dm.getIDField(); !ok && err != nil {
+		return err
 	}
 
 	dm.verified = true
