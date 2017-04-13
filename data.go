@@ -9,7 +9,6 @@ import (
 	"golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/appengine/datastore"
-	"google.golang.org/appengine/log"
 	"google.golang.org/appengine/memcache"
 )
 
@@ -127,7 +126,6 @@ func (dm *DataModel) Load() error {
 	}
 
 	if err := dm.fromCache(); err == nil {
-		log.Debugf(dm.Context(), "(%s) Got from cache", dm.cacheKey())
 		return nil
 	}
 
@@ -193,13 +191,11 @@ func (dm *DataModel) Save() error {
 	// Check if the struct has en Error() method, and use it if it does.
 	if obj, ok := dm.model.(EntityError); ok {
 		if err := obj.Error(); err != nil {
-			log.Debugf(dm.Context(), "(%s/%v) Model error: %s", dm.getEntityName(), dm.ID(), err)
 			return err
 		}
 	}
 
 	if _, err := datastore.Put(dm.Context(), dm.Key(), dm.model); err != nil {
-		log.Errorf(dm.Context(), "(%s/%s) Model error: %v", dm.getEntityName(), dm.ID(), err)
 		return err
 	}
 
@@ -258,7 +254,6 @@ func (dm *DataModel) Uncache() error {
 // Delete deletes the entity from the datastore and memcache
 func (dm *DataModel) Delete() error {
 	if err := datastore.Delete(dm.Context(), dm.Key()); err != nil {
-		log.Errorf(dm.Context(), "(%s/%s) Delete error: %v", dm.getEntityName(), dm.ID(), err)
 		return err
 	}
 	var eg errgroup.Group

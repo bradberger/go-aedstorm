@@ -39,6 +39,14 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
+type testModelWithIDSetter struct {
+	ID string
+}
+
+func (m *testModelWithIDSetter) SetID(id string) {
+	m.ID = id
+}
+
 type testModelErr struct {
 	ID string
 }
@@ -391,4 +399,19 @@ func TestModelUncacheError(t *testing.T) {
 	dm := NewModel(se).WithContext(ctx)
 	assert.NoError(t, dm.Cache())
 	assert.EqualError(t, dm.Uncache(), "uncached me")
+}
+
+func TestDeleteError(t *testing.T) {
+	ctx, _ = context.WithTimeout(ctx, time.Nanosecond)
+	m := NewModel(&testModel{}).WithContext(ctx)
+	assert.Error(t, m.Delete())
+	assert.Error(t, m.Cache())
+	assert.Error(t, m.Save())
+}
+
+func TestSetID(t *testing.T) {
+	s := &testModelWithIDSetter{}
+	m := NewModel(s)
+	m.ID()
+	assert.NotEmpty(t, s.ID)
 }
