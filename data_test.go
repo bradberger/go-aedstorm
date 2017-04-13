@@ -84,10 +84,6 @@ type testModelWithNoID struct {
 	Str string
 }
 
-func (tm *testModelWithNoID) GetID() string {
-	return ""
-}
-
 func (tm *testModelWithNoID) Entity() string {
 	return "testModelWithNoID"
 }

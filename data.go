@@ -65,9 +65,14 @@ func (dm *DataModel) verify() (err error) {
 	}
 	dm.Lock()
 	defer dm.Unlock()
-	if dm.idFieldName, err = dm.getIDField(); err != nil {
-		return err
+
+	// See if implements the EntityID interface, if not then try to guess the field
+	if _, ok := dm.model.(EntityID); !ok {
+		if dm.idFieldName, err = dm.getIDField(); err != nil {
+			return err
+		}
 	}
+
 	dm.verified = true
 	return nil
 }
@@ -165,6 +170,11 @@ func (dm *DataModel) ID() string {
 	dm.uid = uuid.String()
 
 	// If can set the id field, do it now.
+	setter, ok := dm.model.(SetID)
+	if ok {
+		setter.SetID(dm.uid)
+	}
+
 	if fieldName, err := dm.getIDField(); err == nil {
 		reflect.ValueOf(dm.model).Elem().FieldByName(fieldName).SetString(dm.uid)
 	}

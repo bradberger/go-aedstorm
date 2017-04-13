@@ -47,3 +47,8 @@ type OnUncache interface {
 type OnDelete interface {
 	Delete() error
 }
+
+// SetID is an interface, which if defined, allows the model to set it's own ID.
+type SetID interface {
+	SetID(string)
+}
