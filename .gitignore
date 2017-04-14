@@ -1,1 +1,6 @@
 coverage.txt
+.c9/
+bin/
+pkg/
+src/
+vendor/
