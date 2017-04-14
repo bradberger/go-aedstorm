@@ -8,11 +8,14 @@ ORM.
 
 It makes working with the datastore and basic data structs quite simple.
 
-```
+### Example
+
+```golang
 import (
 	"encoding/json"
 	"net/http"
 
+	"google.golang.org/appengine"
 	aedstorm "github.com/bradberger/go-aedstorm"
 )
 
@@ -43,14 +46,12 @@ func myHandler(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-For more examples, see the `examples` subdirectory.
-
 I'm planning on adding more documentation in the future, including some
 more advanced interfaces which you can implement on a model, and queries,
 but for now this should give you an idea how easy it is to get going.
 
 
-Planned improvements
+### Planned improvements
 
 - [ ] Better documentation, more basic examples
 - [ ] More documentation around current interfaces which can be implemented
