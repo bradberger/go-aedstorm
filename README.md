@@ -35,7 +35,7 @@ func myHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	dd := &MyData{ID: "foo"}
-	if err := aedstorm.NewModel(&d).WithContext(ctx).Load(); err != nil {
+	if err := aedstorm.NewModel(&dd).WithContext(ctx).Load(); err != nil {
 		http.Error(w, err.Error(), 500)
 		return
 	}
