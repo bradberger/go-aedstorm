@@ -253,7 +253,7 @@ func (dm *DataModel) Uncache() error {
 
 // Delete deletes the entity from the datastore and memcache
 func (dm *DataModel) Delete() error {
-	if err := datastore.Delete(dm.Context(), dm.Key()); err != nil {
+	if err := datastore.Delete(dm.Context(), dm.Key()); err != nil && err != memcache.ErrCacheMiss {
 		return err
 	}
 	var eg errgroup.Group
