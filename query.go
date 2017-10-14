@@ -46,12 +46,31 @@ type Query struct {
 	dq     *datastore.Query
 }
 
+func (q *Query) Limit(num int) *Query {
+	if q.dq == nil {
+		q.dq = datastore.NewQuery(q.entity)
+	}
+	q.dq = q.dq.Limit(num)
+	return q
+}
+
 // Filter implements the "datastore.Query".Filter interface
 func (q *Query) Filter(filterStr string, value interface{}) *Query {
 	if q.dq == nil {
 		q.dq = datastore.NewQuery(q.entity)
 	}
 	q.dq = q.dq.Filter(filterStr, value)
+	return q
+}
+
+// Order returns a derivative query with a field-based sort order. Orders are
+// applied in the order they are added. The default order is ascending; to sort
+// in descending order prefix the fieldName with a minus sign (-).
+func (q *Query) Order(fieldName string) *Query {
+	if q.dq == nil {
+		q.dq = datastore.NewQuery(q.entity)
+	}
+	q.dq = q.dq.Order(fieldName)
 	return q
 }
 
