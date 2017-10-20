@@ -12,10 +12,10 @@ import (
 
 	"google.golang.org/appengine/aetest"
 	"google.golang.org/appengine/datastore"
-	"google.golang.org/appengine/memcache"
 
 	"golang.org/x/net/context"
 
+	"github.com/bradberger/gocache/cache"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -231,7 +231,7 @@ func TestDeleteWithCacheError(t *testing.T) {
 	dm := NewModel(tm).WithContext(ctx)
 	assert.NoError(t, dm.Save())
 	assert.NoError(t, dm.Uncache())
-	assert.Equal(t, memcache.ErrCacheMiss, dm.Delete())
+	assert.Equal(t, cache.ErrCacheMiss, dm.Delete())
 }
 
 func TestDeleleteUnsaved(t *testing.T) {

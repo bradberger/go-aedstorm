@@ -6,10 +6,12 @@ import (
 	"reflect"
 	"sync"
 
+	gocache "github.com/bradberger/gocache/cache"
+	"github.com/bradberger/rest/cache"
+
 	"golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/appengine/datastore"
-	"google.golang.org/appengine/memcache"
 )
 
 // Standardized error messages
@@ -114,8 +116,7 @@ func (dm *DataModel) fromCache() error {
 	if err := dm.verify(); err != nil {
 		return err
 	}
-	_, err := memcache.Gob.Get(dm.Context(), dm.cacheKey(), dm.model)
-	return err
+	return cache.New(dm.Context()).Get(dm.cacheKey(), dm.model)
 }
 
 // Load loads the entity from the datastore. Must have an ID for this to work.
@@ -221,7 +222,7 @@ func (dm *DataModel) Cache() error {
 	if err := dm.verify(); err != nil {
 		return err
 	}
-	if err := memcache.Gob.Set(dm.Context(), &memcache.Item{Key: dm.cacheKey(), Object: dm.model}); err != nil {
+	if err := cache.New(dm.Context()).Set(dm.cacheKey(), dm.model, 0); err != nil {
 		return err
 	}
 	if obj, ok := dm.model.(OnCache); ok {
@@ -238,9 +239,9 @@ func (dm *DataModel) WithContext(ctx context.Context) *DataModel {
 	return dm
 }
 
-// Uncache removes the cached model from memcache
+// Uncache removes the cached model from cache
 func (dm *DataModel) Uncache() error {
-	if err := memcache.Delete(dm.Context(), dm.cacheKey()); err != nil {
+	if err := cache.New(dm.Context()).Del(dm.cacheKey()); err != nil {
 		return err
 	}
 	if obj, ok := dm.model.(OnUncache); ok {
@@ -251,9 +252,9 @@ func (dm *DataModel) Uncache() error {
 	return nil
 }
 
-// Delete deletes the entity from the datastore and memcache
+// Delete deletes the entity from the datastore and cache
 func (dm *DataModel) Delete() error {
-	if err := datastore.Delete(dm.Context(), dm.Key()); err != nil && err != memcache.ErrCacheMiss {
+	if err := datastore.Delete(dm.Context(), dm.Key()); err != nil && err != gocache.ErrCacheMiss {
 		return err
 	}
 	var eg errgroup.Group
