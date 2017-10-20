@@ -7,7 +7,7 @@ triggers:
   - '**/*.py'
   env:
     DEBUG: "1"
-  cmd: goapp test -race -test.v -coverprofile=coverage.txt -covermode=atomic
+  cmd: go test -race -test.v -coverprofile=coverage.txt -covermode=atomic
   shell: true
   delay: 100ms
   signal: KILL

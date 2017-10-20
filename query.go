@@ -74,6 +74,14 @@ func (q *Query) Order(fieldName string) *Query {
 	return q
 }
 
+func (q *Query) KeysOnly() *Query {
+	if q.dq == nil {
+		q.dq = datastore.NewQuery(q.entity)
+	}
+	q.dq = q.dq.KeysOnly()
+	return q
+}
+
 // Count matches the "datastore.Query".Count interface
 func (q *Query) Count(ctx context.Context) (int, error) {
 	if q.dq == nil {
