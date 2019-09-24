@@ -1,6 +1,6 @@
-[![GoDoc](https://godoc.org/github.com/bradberger/go-aedstorm?status.svg)](https://godoc.org/github.com/bradberger/go-aedstorm)
+[![GoDoc](https://godoc.org/github.com/rubanbydesign/go-aedstorm?status.svg)](https://godoc.org/github.com/rubanbydesign/go-aedstorm)
 [![Build Status](https://semaphoreci.com/api/v1/brad/go-aedstorm/branches/master/shields_badge.svg)](https://semaphoreci.com/brad/go-aedstorm)
-[![codecov](https://codecov.io/gh/bradberger/go-aedstorm/branch/master/graph/badge.svg)](https://codecov.io/gh/bradberger/go-aedstorm)
+[![codecov](https://codecov.io/gh/rubanbydesign/go-aedstorm/branch/master/graph/badge.svg)](https://codecov.io/gh/rubanbydesign/go-aedstorm)
 
 This is an ORM like package which makes working with App Engine datastore
 entities in go a bit easier. The name `aedstorm` stands for App Engine DataSTore
@@ -16,7 +16,7 @@ import (
 	"net/http"
 
 	"google.golang.org/appengine"
-	aedstorm "github.com/bradberger/go-aedstorm"
+	aedstorm "github.com/rubanbydesign/go-aedstorm"
 )
 
 type MyData struct {

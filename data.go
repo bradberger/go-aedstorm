@@ -6,8 +6,8 @@ import (
 	"reflect"
 	"sync"
 
-	gocache "github.com/bradberger/gocache/cache"
-	"github.com/bradberger/rest/cache"
+	gocache "github.com/rubanbydesign/gocache/cache"
+	"github.com/rubanbydesign/rest/cache"
 
 	"golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
