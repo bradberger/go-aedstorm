@@ -126,17 +126,21 @@ func (dm *DataModel) Load() error {
 		return err
 	}
 
-	if err := dm.fromCache(); err == nil {
-		return nil
-	}
+	/*
+		if err := dm.fromCache(); err == nil {
+			return nil
+		}
+	*/
 
 	if err := datastore.Get(dm.Context(), dm.Key(), dm.model); err != nil {
 		return err
 	}
 	// If successful, then cache so we'll have it next time
-	if err := dm.Cache(); err != nil {
-		return err
-	}
+	/*
+		if err := dm.Cache(); err != nil {
+			return err
+		}
+	*/
 	return nil
 }
 
