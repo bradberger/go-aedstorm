@@ -204,12 +204,16 @@ func (dm *DataModel) Save() error {
 		return err
 	}
 
-	var eg errgroup.Group
-	eg.Go(dm.Cache)
+	// var eg errgroup.Group
+	// eg.Go(dm.Cache)
+	// eg.Wait()
+
+	var eg2 errgroup.Group
 	if obj, ok := dm.model.(OnSave); ok {
-		eg.Go(obj.Save)
+		eg2.Go(obj.Save)
 	}
-	return eg.Wait()
+	waitRoutine := eg2.Wait()
+	return waitRoutine
 }
 
 // Context returns the internal net/context
