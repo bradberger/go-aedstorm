@@ -2,12 +2,14 @@ package aedstorm
 
 import (
 	"errors"
+	"log"
+	"os"
 	"reflect"
 	"sync"
 
 	"golang.org/x/net/context"
 
-	"google.golang.org/appengine/datastore"
+	"cloud.google.com/go/datastore"
 )
 
 var (
@@ -16,6 +18,17 @@ var (
 	nextResultKeys  []*datastore.Key
 	mu              sync.Mutex
 )
+
+var dsClient *datastore.Client = nil
+
+func initializeDsClient(ctx context.Context) (err error) {
+	dsClient, err = datastore.NewClient(ctx, os.Getenv("RBD_GCP_PROJECT_ID"))
+	if err != nil {
+		log.Fatalf("Failed to create DataStore client: %v", err)
+		return err
+	}
+	return nil
+}
 
 // SetMockQueryResult sets the query GetAll() result to be the values given
 func SetMockQueryResult(data interface{}, err error, keys []*datastore.Key) {
@@ -87,7 +100,18 @@ func (q *Query) Count(ctx context.Context) (int, error) {
 	if q.dq == nil {
 		q.dq = datastore.NewQuery(q.entity)
 	}
-	return q.dq.Count(ctx)
+	// gcpProjectID := os.Getenv("RBD_GCP_PROJECT_ID")
+	// dsClient, err := datastore.NewClient(ctx, gcpProjectID)
+	// if err != nil {
+	// 	log.Fatalf("Failed to create DataStore client: %v", err)
+	// 	return 0, err
+	// }
+	if dsClient == nil {
+		if err := initializeDsClient(ctx); err != nil {
+			return 0, err
+		}
+	}
+	return dsClient.Count(ctx, q.dq)
 }
 
 // GetAll matches the "datastore.Query".GetAll interface
@@ -105,7 +129,12 @@ func (q *Query) GetAll(ctx context.Context, out interface{}) ([]*datastore.Key, 
 	if q.dq == nil {
 		q.dq = datastore.NewQuery(q.entity)
 	}
-	return q.dq.GetAll(ctx, out)
+	if dsClient == nil {
+		if err := initializeDsClient(ctx); err != nil {
+			return nil, err
+		}
+	}
+	return dsClient.GetAll(ctx, q.dq, out)
 }
 
 // NewQuery returns a new query based off the type of m. If m implements the EntityName interface, it uses

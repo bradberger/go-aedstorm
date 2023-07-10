@@ -3,15 +3,17 @@ package aedstorm
 import (
 	"errors"
 	"fmt"
+	"log"
+	"os"
 	"reflect"
 	"sync"
 
 	gocache "github.com/rubanbydesign/gocache/cache"
 	"github.com/rubanbydesign/rest/cache"
 
+	"cloud.google.com/go/datastore"
 	"golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
-	"google.golang.org/appengine/datastore"
 )
 
 // Standardized error messages
@@ -131,8 +133,13 @@ func (dm *DataModel) Load() error {
 			return nil
 		}
 	*/
-
-	if err := datastore.Get(dm.Context(), dm.Key(), dm.model); err != nil {
+	gcpProjectID := os.Getenv("RBD_GCP_PROJECT_ID")
+	dsClient, err := datastore.NewClient(dm.Context(), gcpProjectID)
+	if err != nil {
+		log.Fatalf("Failed to create DataStore client: %v", err)
+		return err
+	}
+	if err := dsClient.Get(dm.Context(), dm.Key(), dm.model); err != nil {
 		return err
 	}
 	// If successful, then cache so we'll have it next time
@@ -146,7 +153,7 @@ func (dm *DataModel) Load() error {
 
 // Key returns the datastore key
 func (dm *DataModel) Key() *datastore.Key {
-	return datastore.NewKey(dm.Context(), dm.getEntityName(), dm.ID(), 0, nil)
+	return &datastore.Key{Kind: dm.getEntityName(), ID: 0, Name: dm.ID(), Parent: nil}
 }
 
 // ID returns the underlying data struct's unique ID. If the supplied struct
@@ -199,8 +206,13 @@ func (dm *DataModel) Save() error {
 			return err
 		}
 	}
-
-	if _, err := datastore.Put(dm.Context(), dm.Key(), dm.model); err != nil {
+	gcpProjectID := os.Getenv("RBD_GCP_PROJECT_ID")
+	dsClient, err := datastore.NewClient(dm.Context(), gcpProjectID)
+	if err != nil {
+		log.Fatalf("Failed to create DataStore client: %v", err)
+		return err
+	}
+	if _, err := dsClient.Put(dm.Context(), dm.Key(), dm.model); err != nil {
 		return err
 	}
 
@@ -262,7 +274,13 @@ func (dm *DataModel) Uncache() error {
 
 // Delete deletes the entity from the datastore and cache
 func (dm *DataModel) Delete() error {
-	if err := datastore.Delete(dm.Context(), dm.Key()); err != nil && err != gocache.ErrCacheMiss {
+	gcpProjectID := os.Getenv("RBD_GCP_PROJECT_ID")
+	dsClient, err := datastore.NewClient(dm.Context(), gcpProjectID)
+	if err != nil {
+		log.Fatalf("Failed to create DataStore client: %v", err)
+		return err
+	}
+	if err := dsClient.Delete(dm.Context(), dm.Key()); err != nil && err != gocache.ErrCacheMiss {
 		return err
 	}
 	var eg errgroup.Group

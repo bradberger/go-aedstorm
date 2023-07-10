@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
+	"cloud.google.com/go/datastore"
 	"google.golang.org/appengine/aetest"
-	"google.golang.org/appengine/datastore"
 
 	"golang.org/x/net/context"
 
